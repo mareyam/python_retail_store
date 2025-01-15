@@ -69,7 +69,7 @@ class MongoDBCRUDApp:
     def create_toggle_buttons(self):
         self.original_button = ttk.Button(
             self.button_frame,
-            text="Original Data",
+            text="Sales",
             style="ToggleButton.TButton",
             command=self.show_original_data
         )
@@ -618,7 +618,7 @@ class MongoDBCRUDApp:
 
     def save_and_close_popup(self, record_data, customer_data, stock_item, popup):
         # Generate the PDF invoice
-        invoice_file = self.create_invoice(record_data, customer_data, stock_item)
+        invoice_file = self.create_record(record_data, customer_data, stock_item)
         popup.destroy()  # Close the popup window
 
         # Show success message
@@ -627,7 +627,7 @@ class MongoDBCRUDApp:
 
     def generate_and_close_popup(self, record_data, customer_data, stock_item, popup):
         # Generate the PDF invoice
-        invoice_file = self.create_invoice(record_data, customer_data, stock_item)
+        invoice_file = self.create_record(record_data, customer_data, stock_item)
         popup.destroy()  # Close the popup window
 
         # Show success message and ask if the user wants to print
@@ -706,6 +706,7 @@ class MongoDBCRUDApp:
             messagebox.showerror("Error", "QTY must be a valid number!")
         except Exception as e:
             messagebox.showerror("Error", f"Error creating record: {str(e)}")
+    
     def find_customer(self):
         try:
             customer_id = self.customer_vars[0][1].get()  
@@ -783,6 +784,175 @@ class MongoDBCRUDApp:
             self.find_stock()
         except Exception as e:
             messagebox.showerror("Error", f"Error creating stock item: {str(e)}")
+    # def create_record(self):
+    #     transaction_data = {
+    #         name.replace(":", ""): var.get()
+    #         for name, var in self.field_vars
+    #     }
+    #     customer_data = {
+    #         name.replace(":", ""): var.get()
+    #         for name, var in self.customer_vars
+    #     }
+    #     if not transaction_data["Ref Number"]:
+    #         messagebox.showerror("Error", "Ref Number is required!")
+    #         return 
+
+    #     try:
+    #         customer_id = customer_data["Customer ID"]
+    #         if not customer_id:  
+    #             customer_id = str(ObjectId())
+    #             customer_data["Customer ID"] = customer_id
+            
+    #         self.customers_collection.update_one(
+    #             {"Customer ID": customer_id},
+    #             {"$set": customer_data},
+    #             upsert=True  
+    #         )
+        
+    #         transaction_data.update({
+    #             "Customer ID": customer_id,
+    #             "Customer Name": customer_data["Name"],
+    #             "Phone": customer_data["Phone"],
+    #             "Email": customer_data["Email"]
+    #         })
+        
+    #         qty_to_deduct = int(transaction_data["QTY"])
+    #         stock_item = self.stock_collection.find_one({"Part Number": transaction_data["Ref Number"]})
+        
+    #         if not stock_item:
+    #             messagebox.showwarning("Warning", "No matching item found in stock!")
+    #             return  
+            
+    #         current_qty = int(stock_item.get("Quantity", 0))   
+    #         if current_qty >= qty_to_deduct:
+    #             new_qty = current_qty - qty_to_deduct
+    #             self.stock_collection.update_one(
+    #                 {"Part Number": transaction_data["Ref Number"]},
+    #                 {"$set": {"Quantity": new_qty}}
+    #             )
+            
+    #             self.collection.insert_one(transaction_data)
+    #             self.record_cash_history(
+    #                 stock_item["Name"],
+    #                 qty_to_deduct,
+    #                 transaction_data["Sale Price"],
+    #                 "sale"
+    #             )
+    #             invoice_file = self.create_record(transaction_data, customer_data, stock_item)
+    #             if messagebox.askyesno("Print Invoice", "Invoice generated successfully. Would you like to print it?"):
+    #                 self.print_invoice(invoice_file)
+            
+    #             messagebox.showinfo("Success", 
+    #                 f"Record created successfully!\nStock updated: {current_qty} - {qty_to_deduct} = {new_qty}\nCustomer data saved.")
+    #             self.clear_fields()
+    #             self.find_record()
+    #         else:
+    #             messagebox.showerror("Error", 
+    #                 f"Insufficient stock! Available: {current_qty}, Requested: {qty_to_deduct}")    
+    #     except Exception as e:
+    #         # messagebox.showerror("Error", f"An error occurreddd: {str(e)}")
+    #         return
+
+    # def create_record(self):
+    #     transaction_data = {
+    #         name.replace(":", ""): var.get()
+    #         for name, var in self.field_vars
+    #     }
+    #     customer_data = {
+    #         name.replace(":", ""): var.get()
+    #         for name, var in self.customer_vars
+    #     }
+
+    #     if not transaction_data["Ref Number"]:
+    #         messagebox.showerror("Error", "Ref Number is required!")
+    #         return
+
+    #     try:
+    #         # Customer ID Handling
+    #         customer_id = customer_data["Customer ID"]
+    #         if not customer_id:
+    #             customer_id = str(ObjectId())
+    #             customer_data["Customer ID"] = customer_id
+            
+    #         # Save Customer Data
+    #         self.customers_collection.update_one(
+    #             {"Customer ID": customer_id},
+    #             {"$set": customer_data},
+    #             upsert=True
+    #         )
+            
+    #         transaction_data.update({
+    #             "Customer ID": customer_id,
+    #             "Customer Name": customer_data["Name"],
+    #             "Phone": customer_data["Phone"],
+    #             "Email": customer_data["Email"]
+    #         })
+
+    #         # Stock and Quantity Check
+    #         qty_to_deduct = int(transaction_data["QTY"])
+    #         stock_item = self.stock_collection.find_one({"Part Number": transaction_data["Ref Number"]})
+
+    #         if not stock_item:
+    #             messagebox.showwarning("Warning", "No matching item found in stock!")
+    #             return
+
+    #         current_qty = int(stock_item.get("Quantity", 0))
+    #         if current_qty >= qty_to_deduct:
+    #             # Update Stock
+    #             new_qty = current_qty - qty_to_deduct
+    #             self.stock_collection.update_one(
+    #                 {"Part Number": transaction_data["Ref Number"]},
+    #                 {"$set": {"Quantity": new_qty}}
+    #             )
+
+    #             # Insert Transaction and Record as Outgoing
+    #             self.collection.insert_one(transaction_data)
+    #             self.record_cash_history(
+    #                 stock_item["Name"],
+    #                 qty_to_deduct,
+    #                 transaction_data["Sale Price"],
+    #                 "outgoing"
+    #             )
+
+    #             messagebox.showinfo("Success",
+    #                                 f"Record created successfully!\n"
+    #                                 f"Stock updated: {current_qty} - {qty_to_deduct} = {new_qty}\n"
+    #                                 f"Customer data saved.")
+    #             self.clear_fields()
+    #             self.find_record()
+    #         else:
+    #             messagebox.showerror("Error",
+    #                                 f"Insufficient stock! Available: {current_qty}, Requested: {qty_to_deduct}")
+
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    # def create_stock(self):
+    #     stock_data = {
+    #         name.replace(":", ""): var.get()
+    #         for name, var in self.stock_field_vars
+    #     }
+
+    #     if not stock_data["Part Number"]:
+    #         messagebox.showerror("Error", "Part Number is required!")
+    #         return
+
+    #     try:
+    #         # Insert Stock and Record as Ingoing
+    #         self.stock_collection.insert_one(stock_data)
+    #         self.record_cash_history(
+    #             stock_data["Name"],
+    #             int(stock_data.get("Quantity", 0)),
+    #             float(stock_data.get("Purchase Price", 0)),
+    #             "ingoing"
+    #         )
+
+    #         messagebox.showinfo("Success", "New stock item created successfully!")
+    #         self.clear_stock_fields()
+    #         self.find_stock()
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"Error creating stock item: {str(e)}")
+
     def create_record(self):
         transaction_data = {
             name.replace(":", ""): var.get()
@@ -792,66 +962,97 @@ class MongoDBCRUDApp:
             name.replace(":", ""): var.get()
             for name, var in self.customer_vars
         }
+
         if not transaction_data["Ref Number"]:
             messagebox.showerror("Error", "Ref Number is required!")
-            return 
+            return
 
         try:
+            # Customer ID Handling
             customer_id = customer_data["Customer ID"]
-            if not customer_id:  
+            if not customer_id:
                 customer_id = str(ObjectId())
                 customer_data["Customer ID"] = customer_id
             
+            # Save Customer Data
             self.customers_collection.update_one(
                 {"Customer ID": customer_id},
                 {"$set": customer_data},
-                upsert=True  
+                upsert=True
             )
-        
+            
             transaction_data.update({
                 "Customer ID": customer_id,
                 "Customer Name": customer_data["Name"],
                 "Phone": customer_data["Phone"],
                 "Email": customer_data["Email"]
             })
-        
+
+            # Stock and Quantity Check
             qty_to_deduct = int(transaction_data["QTY"])
             stock_item = self.stock_collection.find_one({"Part Number": transaction_data["Ref Number"]})
-        
+
             if not stock_item:
                 messagebox.showwarning("Warning", "No matching item found in stock!")
-                return  
-            
-            current_qty = int(stock_item.get("Quantity", 0))   
+                return
+
+            current_qty = int(stock_item.get("Quantity", 0))
             if current_qty >= qty_to_deduct:
+                # Update Stock
                 new_qty = current_qty - qty_to_deduct
                 self.stock_collection.update_one(
                     {"Part Number": transaction_data["Ref Number"]},
                     {"$set": {"Quantity": new_qty}}
                 )
-            
+
+                # Insert Transaction and Record as Incoming
                 self.collection.insert_one(transaction_data)
                 self.record_cash_history(
                     stock_item["Name"],
                     qty_to_deduct,
                     transaction_data["Sale Price"],
-                    "sale"
+                    "incoming"  # Marked as incoming
                 )
-                invoice_file = self.create_invoice(transaction_data, customer_data, stock_item)
-                if messagebox.askyesno("Print Invoice", "Invoice generated successfully. Would you like to print it?"):
-                    self.print_invoice(invoice_file)
-            
-                messagebox.showinfo("Success", 
-                    f"Record created successfully!\nStock updated: {current_qty} - {qty_to_deduct} = {new_qty}\nCustomer data saved.")
+
+                messagebox.showinfo("Success",
+                                    f"Record created successfully!\n"
+                                    f"Stock updated: {current_qty} - {qty_to_deduct} = {new_qty}\n"
+                                    f"Customer data saved.")
                 self.clear_fields()
                 self.find_record()
             else:
-                messagebox.showerror("Error", 
-                    f"Insufficient stock! Available: {current_qty}, Requested: {qty_to_deduct}")    
+                messagebox.showerror("Error",
+                                    f"Insufficient stock! Available: {current_qty}, Requested: {qty_to_deduct}")
+
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    def create_stock(self):
+        stock_data = {
+            name.replace(":", ""): var.get()
+            for name, var in self.stock_field_vars
+        }
+
+        if not stock_data["Part Number"]:
+            messagebox.showerror("Error", "Part Number is required!")
             return
-    
+
+        try:
+            # Insert Stock and Record as Outgoing
+            self.stock_collection.insert_one(stock_data)
+            self.record_cash_history(
+                stock_data["Name"],
+                int(stock_data.get("Quantity", 0)),
+                float(stock_data.get("Purchase Price", 0)),
+                "outgoing"  # Marked as outgoing
+            )
+
+            messagebox.showinfo("Success", "New stock item created successfully!")
+            self.clear_stock_fields()
+            self.find_stock()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error creating stock item: {str(e)}")
+
     def print_invoice(self, filename):
         try:
             if os.name == 'nt':  # For Windows
@@ -1242,9 +1443,11 @@ class CashHistoryView:
     def create_filter_section(self):
         filter_frame = ttk.LabelFrame(self.frame, text="Filters", padding="10")
         filter_frame.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
+        
+        # Date Range
         ttk.Label(filter_frame, text="Date Range:").grid(row=0, column=0, padx=5)
         self.start_date = DateEntry(filter_frame, width=12, background='darkblue',
-                                  foreground='white', borderwidth=2)
+                                    foreground='white', borderwidth=2)
         self.start_date.grid(row=0, column=1, padx=5)
         
         ttk.Label(filter_frame, text="to").grid(row=0, column=2, padx=5)
@@ -1252,22 +1455,70 @@ class CashHistoryView:
                                 foreground='white', borderwidth=2)
         self.end_date.grid(row=0, column=3, padx=5)
         ttk.Button(filter_frame, text="Today", 
-                  command=lambda: self.set_date_range('today')).grid(row=0, column=4, padx=5)
+                command=lambda: self.set_date_range('today')).grid(row=0, column=4, padx=5)
         ttk.Button(filter_frame, text="This Week", 
-                  command=lambda: self.set_date_range('week')).grid(row=0, column=5, padx=5)
+                command=lambda: self.set_date_range('week')).grid(row=0, column=5, padx=5)
         ttk.Button(filter_frame, text="This Month", 
-                  command=lambda: self.set_date_range('month')).grid(row=0, column=6, padx=5)
+                command=lambda: self.set_date_range('month')).grid(row=0, column=6, padx=5)
+        
+        # Item Search
         ttk.Label(filter_frame, text="Item Name/Number:").grid(row=1, column=0, padx=5, pady=10)
         self.item_search = ttk.Entry(filter_frame, width=20)
         self.item_search.grid(row=1, column=1, columnspan=2, padx=5, pady=10)
+        
+        # Transaction Type Buttons
         ttk.Label(filter_frame, text="Transaction Type:").grid(row=1, column=3, padx=5)
-        self.transaction_type = ttk.Combobox(filter_frame, values=['All', 'Purchase', 'Sale'])
-        self.transaction_type.set('All')
-        self.transaction_type.grid(row=1, column=4, padx=5)
+        
+        # Buttons for "Outgoing" and "Ingoing"
+        self.transaction_type = tk.StringVar(value="All")  # Default is "All"
+        
+        self.outgoing_button = ttk.Button(filter_frame, text="Outgoing",
+                                        command=lambda: self.set_transaction_type("outgoing"))
+        self.outgoing_button.grid(row=1, column=4, padx=5)
+        
+        self.ingoing_button = ttk.Button(filter_frame, text="Ingoing",
+                                        command=lambda: self.set_transaction_type("ingoing"))
+        self.ingoing_button.grid(row=1, column=5, padx=5)
+        
         ttk.Button(filter_frame, text="Search", 
-                  command=self.search_records).grid(row=1, column=5, padx=5)
+                command=self.search_records).grid(row=1, column=6, padx=5)
         ttk.Button(filter_frame, text="Clear Filters", 
-                  command=self.clear_filters).grid(row=1, column=6, padx=5)
+                command=self.clear_filters).grid(row=1, column=7, padx=5)
+
+    def set_transaction_type(self, transaction_type):
+        self.transaction_type.set(transaction_type)
+        self.search_records()  # Automatically search when the transaction type changes
+
+    # def create_filter_section(self):
+    #     filter_frame = ttk.LabelFrame(self.frame, text="Filters", padding="10")
+    #     filter_frame.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
+    #     ttk.Label(filter_frame, text="Date Range:").grid(row=0, column=0, padx=5)
+    #     self.start_date = DateEntry(filter_frame, width=12, background='darkblue',
+    #                               foreground='white', borderwidth=2)
+    #     self.start_date.grid(row=0, column=1, padx=5)
+        
+    #     ttk.Label(filter_frame, text="to").grid(row=0, column=2, padx=5)
+    #     self.end_date = DateEntry(filter_frame, width=12, background='darkblue',
+    #                             foreground='white', borderwidth=2)
+    #     self.end_date.grid(row=0, column=3, padx=5)
+    #     ttk.Button(filter_frame, text="Today", 
+    #               command=lambda: self.set_date_range('today')).grid(row=0, column=4, padx=5)
+    #     ttk.Button(filter_frame, text="This Week", 
+    #               command=lambda: self.set_date_range('week')).grid(row=0, column=5, padx=5)
+    #     ttk.Button(filter_frame, text="This Month", 
+    #               command=lambda: self.set_date_range('month')).grid(row=0, column=6, padx=5)
+    #     ttk.Label(filter_frame, text="Item Name/Number:").grid(row=1, column=0, padx=5, pady=10)
+    #     self.item_search = ttk.Entry(filter_frame, width=20)
+    #     self.item_search.grid(row=1, column=1, columnspan=2, padx=5, pady=10)
+    #     ttk.Label(filter_frame, text="Transaction Type:").grid(row=1, column=3, padx=5)
+    #     self.transaction_type = ttk.Combobox(filter_frame, values=['All', 'Purchase', 'Sale'])
+    #     self.transaction_type.set('All')
+    #     self.transaction_type.grid(row=1, column=4, padx=5)
+    #     ttk.Button(filter_frame, text="Search", 
+    #               command=self.search_records).grid(row=1, column=5, padx=5)
+    #     ttk.Button(filter_frame, text="Clear Filters", 
+    #               command=self.clear_filters).grid(row=1, column=6, padx=5)
+        
     def create_tree(self):
         columns = ("Date", "Item Name/Number", "Transaction Type", "Quantity", "Price", "Total")
         self.tree = ttk.Treeview(self.frame, columns=columns, show="headings", height=15)
@@ -1313,19 +1564,30 @@ class CashHistoryView:
         for item in self.tree.get_children():
             self.tree.delete(item)
         query = {}
+        
+        # Date range filter
         start_date = datetime.combine(self.start_date.get_date(), datetime.min.time())
         end_date = datetime.combine(self.end_date.get_date(), datetime.max.time())
         query['Date'] = {'$gte': start_date, '$lte': end_date}
+        
+        # Item search filter
         if self.item_search.get().strip():
             search_term = self.item_search.get().strip()
             query['Name'] = {'$regex': f'.*{search_term}.*', '$options': 'i'}
-        if self.transaction_type.get() != 'All':
-            query['Type'] = self.transaction_type.get().lower()
+        
+        # Transaction type filter
+        transaction_type = self.transaction_type.get()
+        if transaction_type == "outgoing":
+            query['Type'] = 'sale'
+        elif transaction_type == "ingoing":
+            query['Type'] = 'purchase'
+        
         try:
-            records = self.cash_history.find(query)            
+            records = self.cash_history.find(query)
             total_sales = 0
             total_purchases = 0
             transaction_count = 0
+            
             for record in records:
                 quantity = float(record.get('QTY', 0))
                 price = float(record.get('Price', 0))
@@ -1335,6 +1597,7 @@ class CashHistoryView:
                 else:
                     total_purchases += total
                 transaction_count += 1
+                
                 date_str = record['Date'].strftime('%Y-%m-%d %H:%M')
                 self.tree.insert('', 'end', values=(
                     date_str,
@@ -1344,9 +1607,49 @@ class CashHistoryView:
                     f"${price:,.2f}",
                     f"${total:,.2f}"
                 ))
+
             self.update_summary(total_sales, total_purchases, transaction_count)
         except Exception as e:
             messagebox.showerror("Error", f"Error searching records: {str(e)}")
+
+    # def search_records(self):
+    #     for item in self.tree.get_children():
+    #         self.tree.delete(item)
+    #     query = {}
+    #     start_date = datetime.combine(self.start_date.get_date(), datetime.min.time())
+    #     end_date = datetime.combine(self.end_date.get_date(), datetime.max.time())
+    #     query['Date'] = {'$gte': start_date, '$lte': end_date}
+    #     if self.item_search.get().strip():
+    #         search_term = self.item_search.get().strip()
+    #         query['Name'] = {'$regex': f'.*{search_term}.*', '$options': 'i'}
+    #     if self.transaction_type.get() != 'All':
+    #         query['Type'] = self.transaction_type.get().lower()
+    #     try:
+    #         records = self.cash_history.find(query)            
+    #         total_sales = 0
+    #         total_purchases = 0
+    #         transaction_count = 0
+    #         for record in records:
+    #             quantity = float(record.get('QTY', 0))
+    #             price = float(record.get('Price', 0))
+    #             total = quantity * price
+    #             if record['Type'].lower() == 'sale':
+    #                 total_sales += total
+    #             else:
+    #                 total_purchases += total
+    #             transaction_count += 1
+    #             date_str = record['Date'].strftime('%Y-%m-%d %H:%M')
+    #             self.tree.insert('', 'end', values=(
+    #                 date_str,
+    #                 record['Name'],
+    #                 record['Type'].capitalize(),
+    #                 quantity,
+    #                 f"${price:,.2f}",
+    #                 f"${total:,.2f}"
+    #             ))
+    #         self.update_summary(total_sales, total_purchases, transaction_count)
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"Error searching records: {str(e)}")
     def update_summary(self, total_sales, total_purchases, transaction_count):
         self.total_sales_var.set(f"Total Sales: ${total_sales:,.2f}")
         self.total_purchases_var.set(f"Total Purchases: ${total_purchases:,.2f}")
